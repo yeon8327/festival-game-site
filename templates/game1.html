@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alpha</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 80px);
+      gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .square {
+      width: 80px;
+      height: 80px;
+      font-size: 2rem;
+      background: #222;
+      color: white;
+      border: 2px solid #555;
+      cursor: pointer;
+    }
+    .square:hover {
+      background: #444;
+    }
+    .status {
+      margin: 10px;
+      font-size: 1.2rem;
+    }
+    .reset-btn {
+      margin-top: 15px;
+      padding: 8px 16px;
+      background: #ff0000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .reset-btn:hover {
+      background: #cc0000;
+    }
+    .hint {
+      margin-top: 10px;
+      font-size: 1.1rem;
+      color: #00ff99;
+    }
+  </style>
+</head>
+<body>
+  <h1>TicTacToe</h1>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function TicTacToe() {
+      const [squares, setSquares] = useState(Array(9).fill(null));
+      const [isXTurn, setIsXTurn] = useState(true);
+      const winner = calculateWinner(squares);
+      const isDraw = !winner && squares.every(Boolean);
+      const isGameOver = winner || isDraw;
+
+      useEffect(() => {
+        if (!isXTurn && !winner && !isDraw) {
+          const timer = setTimeout(() => {
+            const move = getAIMove(squares);
+            if (move !== null) {
+              const next = [...squares];
+              next[move] = 'O';
+              setSquares(next);
+              setIsXTurn(true);
+            }
+          }, 500);
+          return () => clearTimeout(timer);
+        }
+      }, [isXTurn, squares, winner, isDraw]);
+
+      const handleClick = (i) => {
+        if (squares[i] || winner || !isXTurn) return;
+        const next = [...squares];
+        next[i] = 'X';
+        setSquares(next);
+        setIsXTurn(false);
+      };
+
+      const resetGame = () => {
+        setSquares(Array(9).fill(null));
+        setIsXTurn(true);
+      };
+
+      const status = winner
+        ? `Winner: ${winner}`
+        : isDraw
+        ? 'Draw'
+        : `Now: ${isXTurn ? 'X' : 'O (AI)'}`;
+
+      return (
+        <div>
+          <div className="board">
+            {squares.map((val, i) => (
+              <button key={i} className="square" onClick={() => handleClick(i)}>
+                {val}
+              </button>
+            ))}
+          </div>
+          <div className="status">{status}</div>
+
+          {/* 플레이어가 이겼을 때만 힌트 표시 */}
+          {winner === 'X' && (
+            <div className="hint">
+              Password Hint: 2
+            </div>
+          )}
+
+          {isGameOver && (
+            <button className="reset-btn" onClick={resetGame}>retry</button>
+          )}
+        </div>
+      );
+    }
+
+    function getAIMove(sq) {
+      const lines = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (let [a,b,c] of lines) {
+        const line = [sq[a], sq[b], sq[c]];
+        if (line.filter(v => v === 'O').length === 2 && line.includes(null)) {
+          return [a,b,c][line.indexOf(null)];
+        }
+      }
+      for (let [a,b,c] of lines) {
+        const line = [sq[a], sq[b], sq[c]];
+        if (line.filter(v => v === 'X').length === 2 && line.includes(null)) {
+          return [a,b,c][line.indexOf(null)];
+        }
+      }
+      if (sq[4] === null) return 4;
+      const empty = sq.map((v, i) => v === null ? i : null).filter(i => i !== null);
+      return empty.length ? empty[Math.floor(Math.random() * empty.length)] : null;
+    }
+
+    function calculateWinner(sq) {
+      const lines = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (let [a,b,c] of lines) {
+        if (sq[a] && sq[a] === sq[b] && sq[a] === sq[c]) return sq[a];
+      }
+      return null;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<TicTacToe />);
+  </script>
+</body>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Delta</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+    .word {
+      font-size: 1.5rem;
+      letter-spacing: 0.3em;
+      margin-bottom: 1rem;
+    }
+    .info {
+      margin-bottom: 1rem;
+    }
+    .success {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .fail {
+      color: #f87171;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .btn {
+      margin-top: 1rem;
+      padding: 10px 20px;
+      background-color: #DC2626; /* 빨강 */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #B91C1C; /* 진한 빨강 */
+    }
+    .hint {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #FFD700; /* 금색 */
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React & Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Hangman Game Code -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const TARGET_WORD = 'escape';
+    const MAX_TRIES = 6;
+
+    function HangmanGame() {
+      const [guessedLetters, setGuessedLetters] = useState([]);
+      const [wrongGuesses, setWrongGuesses] = useState(0);
+      const [gameOver, setGameOver] = useState(false);
+      const [won, setWon] = useState(false);
+
+      const handleKeyDown = (e) => {
+        const key = e.key.toLowerCase();
+        if (gameOver || !/^[a-z]$/.test(key)) return;
+        if (guessedLetters.includes(key)) return;
+
+        const newGuessed = [...guessedLetters, key];
+        setGuessedLetters(newGuessed);
+
+        if (!TARGET_WORD.includes(key)) {
+          setWrongGuesses(prev => prev + 1);
+        }
+      };
+
+      useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+      }, [guessedLetters, gameOver]);
+
+      useEffect(() => {
+        const wordLetters = TARGET_WORD.split('');
+        const allGuessed = wordLetters.every(letter => guessedLetters.includes(letter));
+        if (allGuessed) {
+          setGameOver(true);
+          setWon(true);
+        } else if (wrongGuesses >= MAX_TRIES) {
+          setGameOver(true);
+        }
+      }, [guessedLetters, wrongGuesses]);
+
+      const displayWord = TARGET_WORD
+        .split('')
+        .map(letter => (guessedLetters.includes(letter) ? letter : '_'))
+        .join(' ');
+
+      return (
+        <div className="container">
+          <h1>Hangman</h1>
+          <p className="word">{displayWord}</p>
+          <p className="info">Chance: {MAX_TRIES - wrongGuesses}</p>
+          <p className="info">입력된 글자: {guessedLetters.join(', ') || '없음'}</p>
+
+          {gameOver && (
+            <div>
+              {won ? (
+                <>
+                  <p className="success">Success!</p>
+                  {/* 플레이어가 이겼을 때만 힌트 표시 */}
+                  <div className="hint">Password Hint: 4</div>
+                </>
+              ) : (
+                <p className="fail">Fail. The answer is "{TARGET_WORD.toUpperCase()}".</p>
+              )}
+              <button
+                className="btn"
+                onClick={() => {
+                  setGuessedLetters([]);
+                  setWrongGuesses(0);
+                  setGameOver(false);
+                  setWon(false);
+                }}
+              >
+                retry
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<HangmanGame />);
+  </script>
+</body>
+</html>

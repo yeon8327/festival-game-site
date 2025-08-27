@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>gamma</title>
+  <style>
+    body {
+      background-color: #000000; /* 검은 배경 */
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 2rem;
+      color: white;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .selectedA { background: #DC2626; color: white; } /* 빨강 */
+    .selectedB { background: #6B7280; color: white; } /* 회색 */
+    .unselected { background: #D1D5DB; color: black; }
+    .start { background: #de1b1b; color: white; }
+    .start:hover { background: #801515; }
+    .disabled { background: #9CA3AF; cursor: not-allowed; }
+    .track {
+      position: relative;
+      width: 700px;
+      height: 150px;
+      margin: 2rem auto;
+      border: 2px solid white;
+      background: white;
+      overflow: hidden;
+    }
+    .block {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      color: white;
+      line-height: 64px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .blockA { top: 30px; background: #DC2626; } /* 빨강 */
+    .blockB { top: 90px; background: #6B7280; } /* 회색 */
+    .finish {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 600px;
+      width: 4px;
+      background: black;
+    }
+    .reset-btn {
+      background: #DC2626;
+      color: white;
+    }
+    .reset-btn:hover {
+      background: #B91C1C;
+    }
+    .hint {
+      margin-top: 10px;
+      font-size: 1.2rem;
+      color: #FFD700; /* 금색 느낌 */
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Who will win?</h1>
+  <div id="root"></div>
+
+  <!-- React & Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Game Code -->
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    function BlockRace() {
+      const [selected, setSelected] = useState(null);
+      const [started, setStarted] = useState(false);
+      const [winner, setWinner] = useState(null);
+      const blockARef = useRef(null);
+      const blockBRef = useRef(null);
+      const finishLine = 600;
+
+      const startRace = () => {
+        setStarted(true);
+        let posA = 0, posB = 0;
+        const interval = setInterval(() => {
+          if (!blockARef.current || !blockBRef.current) return;
+          posA += Math.random() * 5;
+          posB += Math.random() * 5;
+          blockARef.current.style.transform = `translateX(${posA}px)`;
+          blockBRef.current.style.transform = `translateX(${posB}px)`;
+          if (posA >= finishLine || posB >= finishLine) {
+            clearInterval(interval);
+            const finalWinner = posA >= finishLine && posB >= finishLine
+              ? (posA > posB ? 'A' : 'B')
+              : (posA >= finishLine ? 'A' : 'B');
+            setWinner(finalWinner);
+          }
+        }, 30);
+      };
+
+      const resetGame = () => {
+        setSelected(null);
+        setStarted(false);
+        setWinner(null);
+        blockARef.current.style.transform = 'translateX(0px)';
+        blockBRef.current.style.transform = 'translateX(0px)';
+      };
+
+      return (
+        <div>
+          {!started && !winner && (
+            <div>
+              <p>Please select a player:</p>
+              <button
+                onClick={() => setSelected('A')}
+                className={selected === 'A' ? 'selectedA' : 'unselected'}
+              >🟥 A Player</button>
+              <button
+                onClick={() => setSelected('B')}
+                className={selected === 'B' ? 'selectedB' : 'unselected'}
+              >⬜ B Player</button>
+              <br />
+              <button
+                onClick={startRace}
+                disabled={!selected}
+                className={`start ${!selected ? 'disabled' : ''}`}
+              >Start!</button>
+            </div>
+          )}
+
+          <div className="track">
+            <div ref={blockARef} className="block blockA">A</div>
+            <div ref={blockBRef} className="block blockB">B</div>
+            <div className="finish"></div>
+          </div>
+
+          {winner && (
+            <div>
+              <h2>{winner} Winner!</h2>
+              <p>{selected === winner ? 'Goal!' : 'Fail...'}</p>
+
+              {/* 플레이어가 이겼을 때만 힌트 표시 */}
+              {selected === winner && (
+                <div className="hint">
+                  Password Hint: 0
+                </div>
+              )}
+
+              <button onClick={resetGame} className="reset-btn">다시 하기</button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<BlockRace />);
+  </script>
+</body>
+</html>
