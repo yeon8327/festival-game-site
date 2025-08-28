@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Enjoy your Daydream</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: 'Arial', sans-serif;
+    }
+
+    a.red {
+        color: #ff0000; 
+        text-decoration: none;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    a.red:hover {
+        text-decoration: underline;
+        color: #660000; 
+    }
+
+    .menu {
+        text-align: center;
+        margin-top: 100px;
+    }
+</style>
+</head>
+<body>
+    <div class="menu">
+        <li><a href="/game1">game1</a></li>
+        <li><a href="/game2">game2</a></li>
+        <li><a href="/game3">game3</a></li>
+        <li><a href="/game4">game4</a></li>
+    </div>
+</body>
+</html>
